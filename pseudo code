@@ -3,8 +3,11 @@ Input:
 - Model terlatih (keras_model.h5)
 - Daftar label kelas (labels.txt)
 - Model deteksi wajah (haarcascade_frontalface_default.xml)
+- Resolusi kamera (width, height)
 
 Output:
+- Tampilan video dengan deteksi wajah dan klasifikasi
+
 Tampilan video dengan deteksi wajah dan klasifikasi
 Import library yang diperlukan (Flask, render_template, Response, cv2, numpy, load_model).
 Inisialisasi Flask app.
@@ -17,30 +20,35 @@ Tentukan font untuk menampilkan nama kelas.
 
 Definisikan fungsi generate_frames():
     Selama True:
-        Tangkap frame dari kamera menggunakan cap.read().
-        Deteksi wajah dalam frame menggunakan model deteksi wajah (face_cascade.detectMultiScale()).
-        Untuk setiap wajah yang terdeteksi:
-            Ekstrak region wajah dari frame.
-            Preprocessing gambar wajah (resize, normalisasi, dll).
-            Lakukan prediksi kelas menggunakan model terlatih (model.predict()).
-            Tentukan kelas dengan probabilitas tertinggi (argmax()).
-            Dapatkan nama kelas dari daftar label menggunakan indeks kelas.
-            
-            Jika probabilitas kelas kurang dari 70%:
-                Gambar persegi di sekitar wajah dengan warna merah.
-                Tampilkan teks "Unknown" beserta probabilitas di atas persegi.
-            Jika probabilitas kelas lebih dari atau sama dengan 70%:
-                Tampilkan nama kelas di atas wajah.
-                Gambar persegi di sekitar wajah dengan warna hijau.
-                Tampilkan teks nama kelas beserta probabilitas di bawah persegi.
+        ret, frame <- cap.read()
+        faces <- face_cascade.detectMultiScale(frame, scaleFactor=1.3, minNeighbors=5)
 
-        Konversi frame ke format JPEG menggunakan cv2.imencode().
+        Untuk setiap wajah (x, y, w, h) dalam faces:
+            face_img <- frame[y:y+h, x:x+w]
+            face_img <- resize(face_img, (224, 224))
+            face_img <- expand_dims(face_img, axis=0)
+            face_img <- face_img / 255.0
 
-        Kirim frame sebagai respons menggunakan yield.
+            pred_probs <- model.predict(face_img)[0]
+            class_idx <- argmax(pred_probs)
+            class_prob <- pred_probs[class_idx]
+            class_name <- class_names[class_idx]
 
-Definisikan route '/' untuk menampilkan template 'index2.html'.
+            if class_prob * 100 < 70:
+                Gambar persegi di sekitar wajah dengan warna merah
+                Tampilkan teks "Unknown" beserta probabilitas di atas persegi
+            Else:
+                Tampilkan nama kelas di atas wajah
+                Gambar persegi di sekitar wajah dengan warna hijau
+                Tampilkan teks nama kelas beserta probabilitas di bawah persegi
 
-Definisikan route '/video' untuk mengirimkan respons berupa frame video dari generate_frames().
+        Convert frame menjadi format JPEG menggunakan cv2.imencode()
 
-Jalankan aplikasi Flask.
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+Definisikan route '/' untuk menampilkan template 'index2.html'
+
+Definisikan route '/video' untuk mengirimkan respons berupa frame video dari generate_frames()
+
+Jalankan aplikasi Flask
