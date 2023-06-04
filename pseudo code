@@ -1,0 +1,46 @@
+Input:
+- Kamera (VideoCapture)
+- Model terlatih (keras_model.h5)
+- Daftar label kelas (labels.txt)
+- Model deteksi wajah (haarcascade_frontalface_default.xml)
+
+Output:
+Tampilan video dengan deteksi wajah dan klasifikasi
+Import library yang diperlukan (Flask, render_template, Response, cv2, numpy, load_model).
+Inisialisasi Flask app.
+Load model yang telah dilatih (keras_model.h5) menggunakan load_model() dari Keras.
+Load daftar label kelas dari file (labels.txt).
+Load model deteksi wajah (haarcascade_frontalface_default.xml) menggunakan cv2.CascadeClassifier().
+Buka kamera (VideoCapture).
+Atur resolusi kamera.
+Tentukan font untuk menampilkan nama kelas.
+
+Definisikan fungsi generate_frames():
+    Selama True:
+        Tangkap frame dari kamera menggunakan cap.read().
+        Deteksi wajah dalam frame menggunakan model deteksi wajah (face_cascade.detectMultiScale()).
+        Untuk setiap wajah yang terdeteksi:
+            Ekstrak region wajah dari frame.
+            Preprocessing gambar wajah (resize, normalisasi, dll).
+            Lakukan prediksi kelas menggunakan model terlatih (model.predict()).
+            Tentukan kelas dengan probabilitas tertinggi (argmax()).
+            Dapatkan nama kelas dari daftar label menggunakan indeks kelas.
+            
+            Jika probabilitas kelas kurang dari 70%:
+                Gambar persegi di sekitar wajah dengan warna merah.
+                Tampilkan teks "Unknown" beserta probabilitas di atas persegi.
+            Jika probabilitas kelas lebih dari atau sama dengan 70%:
+                Tampilkan nama kelas di atas wajah.
+                Gambar persegi di sekitar wajah dengan warna hijau.
+                Tampilkan teks nama kelas beserta probabilitas di bawah persegi.
+
+        Konversi frame ke format JPEG menggunakan cv2.imencode().
+
+        Kirim frame sebagai respons menggunakan yield.
+
+Definisikan route '/' untuk menampilkan template 'index2.html'.
+
+Definisikan route '/video' untuk mengirimkan respons berupa frame video dari generate_frames().
+
+Jalankan aplikasi Flask.
+
