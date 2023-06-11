@@ -17,6 +17,7 @@ face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 # Open the camera
 cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture('http://alamat_ip_laptop_b:5000/video')
 
 # Set the camera resolution
 cap.set(3, 640)
